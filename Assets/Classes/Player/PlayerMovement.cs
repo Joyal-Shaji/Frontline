@@ -19,9 +19,9 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField, Min(0f)] private float walkSpeed = 5f;
-    [SerializeField, Min(0f)] private float sprintSpeed = 8f;
+    [SerializeField, Min(0f)] private float sprintSpeed = 10f;
     [SerializeField, Min(0f)] private float acceleration = 20f;
-    [SerializeField, Min(0f)] private float deceleration = 25f;
+    [SerializeField, Min(0f)] private float deceleration = 12f;
     [SerializeField] private Transform viewTransform;
     [SerializeField] private bool rotateTowardsMovement;
     [SerializeField, Min(0f)] private float rotationSpeed = 720f;
@@ -108,11 +108,11 @@ public class PlayerMovement : MonoBehaviour
                 verticalVelocity = groundedGravity;
             }
 
-            bool jumpPressed = jumpAction != null
-                ? jumpAction.action.WasPressedThisFrame()
-                : IsKeyboardJumpPressedThisFrame();
+            bool jumpHeld = jumpAction != null
+                ? jumpAction.action.IsPressed()
+                : IsKeyboardJumpHeld();
 
-            if (jumpPressed)
+            if (jumpHeld)
             {
                 verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
             }
@@ -191,9 +191,9 @@ public class PlayerMovement : MonoBehaviour
         return Vector2.ClampMagnitude(new Vector2(horizontal, vertical), 1f);
     }
 
-    private static bool IsKeyboardJumpPressedThisFrame()
+    private static bool IsKeyboardJumpHeld()
     {
-        return Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+        return Keyboard.current != null && Keyboard.current.spaceKey.isPressed;
     }
 
     private static bool IsKeyboardSprintHeld()
