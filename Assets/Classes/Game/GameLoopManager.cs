@@ -14,8 +14,8 @@ public class NewMonoBehaviourScript : MonoBehaviour
         EntitySummoner.Init();
 
         StartCoroutine(GameLoop());
-        InvokeRepeating("SummmonTest", 0f, 1f);
-        InvokeRepeating("RemoveTest", 0f, 1.5f);
+        InvokeRepeating("SummmonTest", 0f, 1f); //Test to see if enemies are being summoned
+        InvokeRepeating("RemoveTest", 0f, 1.5f);    //Test to see if enemies are being removed
     }
 
     void RemoveTest()

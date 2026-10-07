@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdbaf3caf759d42b38294df7d6e374c7, type: 3}
   m_Name: Basic
   m_EditorClassIdentifier: Assembly-CSharp::EnemySummonData
-  EnemyPrefab: {fileID: 0}
-  EnemyID: 0
+  EnemyPrefab: {fileID: 3520322254709899769, guid: 5252968fc100b4af983dc69e25b996af, type: 3}
+  EnemyID: 1
