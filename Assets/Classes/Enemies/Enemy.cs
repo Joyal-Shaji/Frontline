@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
+    public int NodeIndex;
     public float maxHealth;
     public float health;
     public float speed;
@@ -12,5 +13,8 @@ public class Enemy : MonoBehaviour
     {
         // Initialize enemy properties here
         health = maxHealth;
+        transform.position = GameLoopManager.NodePositions[0];
+        NodeIndex = 0;
+        speed = 10f; // Set default speed or retrieve from a data source
     }
 }
