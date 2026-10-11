@@ -975,7 +975,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 91.4
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -1748,10 +1748,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77685bf6246754290ac1474fe68793da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerPlacement
-  editorCamera: {fileID: 0}
+  editorCamera: {fileID: 2044521851}
   placementSurfaceMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  ignoredPlacementLayers:
+    serializedVersion: 2
+    m_Bits: 12
   raycastDistance: 500
 --- !u!1 &507273274
 GameObject:
@@ -2742,7 +2745,7 @@ GameObject:
   - component: {fileID: 982552043}
   - component: {fileID: 982552042}
   - component: {fileID: 982552041}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Wall (2)
   m_TagString: CantPlace
   m_Icon: {fileID: 0}
@@ -3033,7 +3036,7 @@ GameObject:
   - component: {fileID: 1160911768}
   - component: {fileID: 1160911767}
   - component: {fileID: 1160911766}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Wall (4)
   m_TagString: CantPlace
   m_Icon: {fileID: 0}
@@ -3784,7 +3787,7 @@ GameObject:
   - component: {fileID: 1319414424}
   - component: {fileID: 1319414423}
   - component: {fileID: 1319414422}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Wall (1)
   m_TagString: CantPlace
   m_Icon: {fileID: 0}
@@ -3940,7 +3943,7 @@ GameObject:
   - component: {fileID: 1392304681}
   - component: {fileID: 1392304680}
   - component: {fileID: 1392304679}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: Wall (3)
   m_TagString: CantPlace
   m_Icon: {fileID: 0}
@@ -4612,7 +4615,7 @@ Transform:
   m_GameObject: {fileID: 1616388512}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.9659258, z: -0, w: 0.25881916}
-  m_LocalPosition: {x: 0.37259364, y: 5, z: 3.6453533}
+  m_LocalPosition: {x: -0.25240666, y: 11.75, z: 2.5628216}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -4646,8 +4649,6 @@ MonoBehaviour:
   acceleration: 20
   deceleration: 25
   viewTransform: {fileID: 330585546}
-  rotateTowardsMovement: 1
-  rotationSpeed: 720
   jumpHeight: 1.5
   gravity: -20
   groundedGravity: -2
@@ -5738,7 +5739,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2080150704}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: InvisableBorders
   m_TagString: Untagged
   m_Icon: {fileID: 0}

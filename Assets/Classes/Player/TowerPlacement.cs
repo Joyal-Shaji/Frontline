@@ -7,6 +7,8 @@ public class TowerPlacement : MonoBehaviour
 {
     [SerializeField] private Camera editorCamera;
     [SerializeField] private LayerMask placementSurfaceMask = ~0;
+    [Tooltip("Layers the placement ray passes through, such as invisible map borders.")]
+    [SerializeField] private LayerMask ignoredPlacementLayers = 1 << 2;
     [SerializeField, Min(0f)] private float raycastDistance = 500f;
 
     private GameObject currentPlacingTower;
@@ -80,13 +82,18 @@ public class TowerPlacement : MonoBehaviour
         RaycastHit[] hits = Physics.RaycastAll(
             placementRay,
             raycastDistance,
-            placementSurfaceMask,
+            placementSurfaceMask & ~ignoredPlacementLayers,
             QueryTriggerInteraction.Ignore);
         System.Array.Sort(hits, (first, second) => first.distance.CompareTo(second.distance));
 
         // Find the first surface hit that is not part of the tower preview itself.
         foreach (RaycastHit hit in hits)
         {
+            if ((ignoredPlacementLayers.value & (1 << hit.collider.gameObject.layer)) != 0)
+            {
+                continue;
+            }
+
             if (hit.transform == currentPlacingTower.transform ||
                 hit.transform.IsChildOf(currentPlacingTower.transform))
             {

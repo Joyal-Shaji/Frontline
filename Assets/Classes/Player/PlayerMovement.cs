@@ -23,8 +23,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Min(0f)] private float acceleration = 20f;
     [SerializeField, Min(0f)] private float deceleration = 12f;
     [SerializeField] private Transform viewTransform;
-    [SerializeField] private bool rotateTowardsMovement;
-    [SerializeField, Min(0f)] private float rotationSpeed = 720f;
 
     [Header("Jump and Gravity")]
     [SerializeField, Min(0f)] private float jumpHeight = 1.5f;
@@ -120,15 +118,6 @@ public class PlayerMovement : MonoBehaviour
 
         verticalVelocity += gravity * Time.deltaTime;
         characterController.Move((horizontalVelocity + Vector3.up * verticalVelocity) * Time.deltaTime);
-
-        if (rotateTowardsMovement && moveDirection.sqrMagnitude > 0.001f)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRotation,
-                rotationSpeed * Time.deltaTime);
-        }
     }
 
     private static void EnableAction(InputActionReference actionReference)
