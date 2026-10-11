@@ -7,6 +7,7 @@ public class SwitchCameraMode : MonoBehaviour
     public Camera playerCamera;
     public Camera topDownCamera;
     [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private EditorViewModeMovement editorViewMovement;
 
     private void Awake()
     {
@@ -22,6 +23,24 @@ public class SwitchCameraMode : MonoBehaviour
         if (playerMovement == null)
         {
             playerMovement = playerCamera.GetComponentInParent<PlayerMovement>();
+            if (playerMovement == null)
+            {
+                playerMovement = FindFirstObjectByType<PlayerMovement>();
+            }
+        }
+
+        // Find the editor controls on the editor camera or its parent rig.
+        if (editorViewMovement == null)
+        {
+            editorViewMovement = topDownCamera.GetComponent<EditorViewModeMovement>();
+            if (editorViewMovement == null)
+            {
+                editorViewMovement = topDownCamera.GetComponentInParent<EditorViewModeMovement>();
+            }
+            if (editorViewMovement == null)
+            {
+                editorViewMovement = FindFirstObjectByType<EditorViewModeMovement>();
+            }
         }
 
         // Start in normal player-camera mode.
@@ -41,6 +60,18 @@ public class SwitchCameraMode : MonoBehaviour
     {
         // The player camera is enabled when editor mode is off.
         SetEditorMode(playerCamera.enabled);
+        if (playerCamera.enabled)
+        {
+            Debug.Log("Switched to Player Camera");
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
+        else
+        {
+            Debug.Log("Switched to Editor Camera");
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
 
     private void SetEditorMode(bool editorMode)
@@ -53,6 +84,20 @@ public class SwitchCameraMode : MonoBehaviour
         if (playerMovement != null)
         {
             playerMovement.enabled = !editorMode;
+        }
+        else
+        {
+            Debug.LogWarning("PlayerMovement was not found. Assign it in the SwitchCameraMode Inspector.", this);
+        }
+
+        // Keep the editor controller off in player mode and on in editor mode.
+        if (editorViewMovement != null)
+        {
+            editorViewMovement.enabled = editorMode;
+        }
+        else
+        {
+            Debug.LogWarning("EditorViewModeMovement was not found. Assign it in the SwitchCameraMode Inspector.", this);
         }
 
         // Keep only the active camera's audio listener enabled.

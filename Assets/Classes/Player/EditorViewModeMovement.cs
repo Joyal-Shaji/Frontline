@@ -12,7 +12,7 @@ public class EditorViewModeMovement : MonoBehaviour
 
     [Header("Mouse Look")]
     [SerializeField] private Transform cameraPitchPivot;
-    [SerializeField, Min(0f)] private float mouseSensitivity = 0f;
+    [SerializeField, Min(0f)] private float mouseSensitivity = 0.1f;
     [SerializeField, Range(0f, 89f)] private float pitchLimit = 85f;
     [SerializeField] private bool invertY;
     [SerializeField] private bool lockCursor = true;
@@ -29,7 +29,7 @@ public class EditorViewModeMovement : MonoBehaviour
     [Header("Jump and Gravity")]
     [SerializeField, Min(0f)] private float jumpHeight = 0f;
     [SerializeField] private float gravity = 0f;
-    [SerializeField] private float groundedGravity = 0f;
+    [SerializeField] private float groundedGravity = -2f;
 
     private CharacterController characterController;
     private Vector3 horizontalVelocity;
@@ -58,8 +58,8 @@ public class EditorViewModeMovement : MonoBehaviour
 
         if (lockCursor)
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 
