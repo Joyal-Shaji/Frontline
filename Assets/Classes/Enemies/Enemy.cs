@@ -9,6 +9,18 @@ public class Enemy : MonoBehaviour
     public float health;
     public float speed;
     public int ID;
+    public float Health
+    {
+        get { return health; }
+        set
+        {
+            health = value;
+            if (health <= 0)
+            {
+                EntitySummoner.RemoveEnemy(this);
+            }
+        }
+    }
     public void Init()
     {
         // Initialize enemy properties here
