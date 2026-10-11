@@ -8,6 +8,7 @@ public class SwitchCameraMode : MonoBehaviour
     public Camera topDownCamera;
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private EditorViewModeMovement editorViewMovement;
+    [SerializeField] private CanvasGroup editorModeUI;
 
     private void Awake()
     {
@@ -40,6 +41,20 @@ public class SwitchCameraMode : MonoBehaviour
             if (editorViewMovement == null)
             {
                 editorViewMovement = FindFirstObjectByType<EditorViewModeMovement>();
+            }
+        }
+
+        // Find the editor canvas and create a CanvasGroup if the scene does not have one yet.
+        if (editorModeUI == null)
+        {
+            Canvas editorCanvas = FindFirstObjectByType<Canvas>();
+            if (editorCanvas != null)
+            {
+                editorModeUI = editorCanvas.GetComponent<CanvasGroup>();
+                if (editorModeUI == null)
+                {
+                    editorModeUI = editorCanvas.gameObject.AddComponent<CanvasGroup>();
+                }
             }
         }
 
@@ -79,6 +94,14 @@ public class SwitchCameraMode : MonoBehaviour
         // Enable only the camera for the selected mode.
         playerCamera.enabled = !editorMode;
         topDownCamera.enabled = editorMode;
+
+        // Hide and disable tower-placement controls outside editor mode.
+        if (editorModeUI != null)
+        {
+            editorModeUI.alpha = editorMode ? 1f : 0f;
+            editorModeUI.interactable = editorMode;
+            editorModeUI.blocksRaycasts = editorMode;
+        }
 
         // Disable player movement while using the editor camera.
         if (playerMovement != null)

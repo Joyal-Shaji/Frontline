@@ -12,7 +12,7 @@ public class EditorViewModeMovement : MonoBehaviour
 
     [Header("Mouse Look")]
     [SerializeField] private Transform cameraPitchPivot;
-    [SerializeField, Min(0f)] private float mouseSensitivity = 0.1f;
+    [SerializeField, Min(0f)] private float mouseSensitivity = 0f;
     [SerializeField, Range(0f, 89f)] private float pitchLimit = 85f;
     [SerializeField] private bool invertY;
     [SerializeField] private bool lockCursor = true;
@@ -29,17 +29,30 @@ public class EditorViewModeMovement : MonoBehaviour
     [Header("Jump and Gravity")]
     [SerializeField, Min(0f)] private float jumpHeight = 0f;
     [SerializeField] private float gravity = 0f;
-    [SerializeField] private float groundedGravity = -2f;
+    [SerializeField] private float groundedGravity = 0f;
 
     private CharacterController characterController;
     private Vector3 horizontalVelocity;
     private float verticalVelocity;
     private float yaw;
     private float pitch;
+    private Transform movementFrameTransform;
 
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
+
+        // Use the editor camera as the movement frame so WASD follows its screen directions.
+        movementFrameTransform = viewTransform;
+        if (movementFrameTransform == null)
+        {
+            SwitchCameraMode cameraMode = FindFirstObjectByType<SwitchCameraMode>();
+            if (cameraMode != null && cameraMode.topDownCamera != null)
+            {
+                movementFrameTransform = cameraMode.topDownCamera.transform;
+            }
+        }
+
         yaw = transform.eulerAngles.y;
 
         Transform pitchTarget = GetPitchTarget();
@@ -58,8 +71,8 @@ public class EditorViewModeMovement : MonoBehaviour
 
         if (lockCursor)
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 
@@ -85,7 +98,7 @@ public class EditorViewModeMovement : MonoBehaviour
             ? Vector2.ClampMagnitude(moveAction.action.ReadValue<Vector2>(), 1f)
             : ReadKeyboardMove();
 
-        Transform movementFrame = viewTransform != null ? viewTransform : transform;
+        Transform movementFrame = movementFrameTransform != null ? movementFrameTransform : transform;
         Vector3 forward = Vector3.ProjectOnPlane(movementFrame.forward, Vector3.up).normalized;
         Vector3 right = Vector3.ProjectOnPlane(movementFrame.right, Vector3.up).normalized;
         Vector3 moveDirection = Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);

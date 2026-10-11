@@ -15,6 +15,5 @@ public class Enemy : MonoBehaviour
         health = maxHealth;
         transform.position = GameLoopManager.NodePositions[0];
         NodeIndex = 0;
-        speed = 10f; // Set default speed or retrieve from a data source
     }
 }
