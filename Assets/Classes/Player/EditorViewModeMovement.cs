@@ -6,28 +6,24 @@ public class EditorViewModeMovement : MonoBehaviour
 {
     [Header("Input")]
     [SerializeField] private InputActionReference moveAction;
-    [SerializeField] private InputActionReference jumpAction;
     [SerializeField] private InputActionReference sprintAction;
-    [SerializeField] private InputActionReference lookAction;
 
-    [Header("Mouse Look")]
-    [SerializeField] private Transform cameraPitchPivot;
-    [SerializeField, Min(0f)] private float mouseSensitivity = 0f;
-    [SerializeField, Range(0f, 89f)] private float pitchLimit = 85f;
-    [SerializeField] private bool invertY;
-    [SerializeField] private bool lockCursor = true;
-
-    [Header("Movement")]
+    [Header("World-Space Movement")]
     [SerializeField, Min(0f)] private float walkSpeed = 5f;
     [SerializeField, Min(0f)] private float sprintSpeed = 10f;
     [SerializeField, Min(0f)] private float acceleration = 20f;
     [SerializeField, Min(0f)] private float deceleration = 12f;
     [SerializeField] private Transform viewTransform;
-    [SerializeField] private bool rotateTowardsMovement;
-    [SerializeField, Min(0f)] private float rotationSpeed = 720f;
 
-    [Header("Jump and Gravity")]
-    [SerializeField, Min(0f)] private float jumpHeight = 0f;
+    [Header("Orbit and Zoom")]
+    [SerializeField] private Transform focalPoint;
+    [SerializeField, Min(0.1f)] private float initialFocalDistance = 10f;
+    [SerializeField, Min(0f)] private float orbitSensitivity = 0.2f;
+    [SerializeField, Min(0f)] private float zoomSpeed = 5f;
+    [SerializeField, Min(0.1f)] private float minimumZoomDistance = 2f;
+    [SerializeField, Min(0.1f)] private float maximumZoomDistance = 100f;
+
+    [Header("Vertical Movement")]
     [SerializeField] private float gravity = 0f;
     [SerializeField] private float groundedGravity = 0f;
 
@@ -35,70 +31,55 @@ public class EditorViewModeMovement : MonoBehaviour
     private Vector3 horizontalVelocity;
     private float verticalVelocity;
     private float yaw;
-    private float pitch;
-    private Transform movementFrameTransform;
+    private float initialYaw;
+    private Quaternion initialRotation;
+    private Vector3 runtimeFocalPoint;
 
     private void Awake()
     {
         characterController = GetComponent<CharacterController>();
 
-        // Use the editor camera as the movement frame so WASD follows its screen directions.
-        movementFrameTransform = viewTransform;
-        if (movementFrameTransform == null)
+        if (viewTransform == null)
         {
             SwitchCameraMode cameraMode = FindFirstObjectByType<SwitchCameraMode>();
             if (cameraMode != null && cameraMode.topDownCamera != null)
             {
-                movementFrameTransform = cameraMode.topDownCamera.transform;
+                viewTransform = cameraMode.topDownCamera.transform;
             }
         }
 
         yaw = transform.eulerAngles.y;
-
-        Transform pitchTarget = GetPitchTarget();
-        if (pitchTarget != null)
-        {
-            pitch = Mathf.DeltaAngle(0f, pitchTarget.localEulerAngles.x);
-        }
+        initialYaw = yaw;
+        initialRotation = transform.rotation;
+        runtimeFocalPoint = focalPoint != null
+            ? focalPoint.position
+            : GetViewTransform().position + GetViewTransform().forward * initialFocalDistance;
     }
 
     private void OnEnable()
     {
         EnableAction(moveAction);
-        EnableAction(jumpAction);
         EnableAction(sprintAction);
-        EnableAction(lookAction);
-
-        if (lockCursor)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private void OnDisable()
     {
         DisableAction(moveAction);
-        DisableAction(jumpAction);
         DisableAction(sprintAction);
-        DisableAction(lookAction);
-
-        if (lockCursor)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
     }
 
     private void Update()
     {
-        ApplyMouseLook();
+        HandleOrbitAndZoom();
 
         Vector2 input = moveAction != null
             ? Vector2.ClampMagnitude(moveAction.action.ReadValue<Vector2>(), 1f)
             : ReadKeyboardMove();
 
-        Transform movementFrame = movementFrameTransform != null ? movementFrameTransform : transform;
+        // Pan relative to the camera's facing direction, projected onto the world ground plane.
+        Transform movementFrame = GetViewTransform();
         Vector3 forward = Vector3.ProjectOnPlane(movementFrame.forward, Vector3.up).normalized;
         Vector3 right = Vector3.ProjectOnPlane(movementFrame.right, Vector3.up).normalized;
         Vector3 moveDirection = Vector3.ClampMagnitude(forward * input.y + right * input.x, 1f);
@@ -120,27 +101,14 @@ public class EditorViewModeMovement : MonoBehaviour
             {
                 verticalVelocity = groundedGravity;
             }
-
-            bool jumpHeld = jumpAction != null
-                ? jumpAction.action.IsPressed()
-                : IsKeyboardJumpHeld();
-
-            if (jumpHeld)
-            {
-                verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            }
         }
 
         verticalVelocity += gravity * Time.deltaTime;
+        Vector3 previousPosition = transform.position;
         characterController.Move((horizontalVelocity + Vector3.up * verticalVelocity) * Time.deltaTime);
-
-        if (rotateTowardsMovement && moveDirection.sqrMagnitude > 0.001f)
+        if (focalPoint == null)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(
-                transform.rotation,
-                targetRotation,
-                rotationSpeed * Time.deltaTime);
+            runtimeFocalPoint += transform.position - previousPosition;
         }
     }
 
@@ -160,33 +128,51 @@ public class EditorViewModeMovement : MonoBehaviour
         }
     }
 
-    private void ApplyMouseLook()
+    private void HandleOrbitAndZoom()
     {
-        Vector2 lookDelta = lookAction != null
-            ? lookAction.action.ReadValue<Vector2>()
-            : Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
-
-        yaw += lookDelta.x * mouseSensitivity;
-        pitch += lookDelta.y * mouseSensitivity * (invertY ? 1f : -1f);
-        pitch = Mathf.Clamp(pitch, -pitchLimit, pitchLimit);
-
-        transform.rotation = Quaternion.Euler(0f, yaw, 0f);
-
-        Transform pitchTarget = GetPitchTarget();
-        if (pitchTarget != null)
+        Mouse mouse = Mouse.current;
+        if (mouse == null)
         {
-            pitchTarget.localRotation = Quaternion.Euler(pitch, 0f, 0f);
+            return;
+        }
+
+        Vector3 focus = focalPoint != null ? focalPoint.position : runtimeFocalPoint;
+        if (mouse.middleButton.isPressed)
+        {
+            // Only horizontal mouse motion is used; vertical drag never changes camera pitch.
+            float yawDelta = mouse.delta.ReadValue().x * orbitSensitivity;
+            if (!Mathf.Approximately(yawDelta, 0f))
+            {
+                yaw += yawDelta;
+                transform.position = focus + Quaternion.AngleAxis(yawDelta, Vector3.up)
+                    * (transform.position - focus);
+                transform.rotation = Quaternion.AngleAxis(yaw - initialYaw, Vector3.up) * initialRotation;
+            }
+        }
+
+        float scroll = mouse.scroll.ReadValue().y;
+        if (!Mathf.Approximately(scroll, 0f))
+        {
+            // Normalize the 120-unit wheel reports used by many desktop mice, while also
+            // supporting devices that report scroll in smaller step values.
+            float wheelSteps = Mathf.Abs(scroll) >= 10f ? scroll / 120f : scroll;
+            Vector3 offset = transform.position - focus;
+            float distance = offset.magnitude;
+            float targetDistance = Mathf.Clamp(
+                distance - wheelSteps * zoomSpeed,
+                minimumZoomDistance,
+                maximumZoomDistance);
+
+            if (distance > Mathf.Epsilon)
+            {
+                transform.position = focus + offset * (targetDistance / distance);
+            }
         }
     }
 
-    private Transform GetPitchTarget()
+    private Transform GetViewTransform()
     {
-        if (cameraPitchPivot != null)
-        {
-            return cameraPitchPivot;
-        }
-
-        return viewTransform != transform ? viewTransform : null;
+        return viewTransform != null ? viewTransform : transform;
     }
 
     private static Vector2 ReadKeyboardMove()
@@ -202,11 +188,6 @@ public class EditorViewModeMovement : MonoBehaviour
             - (Keyboard.current.sKey.isPressed ? 1f : 0f);
 
         return Vector2.ClampMagnitude(new Vector2(horizontal, vertical), 1f);
-    }
-
-    private static bool IsKeyboardJumpHeld()
-    {
-        return Keyboard.current != null && Keyboard.current.spaceKey.isPressed;
     }
 
     private static bool IsKeyboardSprintHeld()
