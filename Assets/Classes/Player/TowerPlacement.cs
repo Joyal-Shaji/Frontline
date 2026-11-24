@@ -12,8 +12,10 @@ public class TowerPlacement : MonoBehaviour
     [SerializeField, Min(0f)] private float raycastDistance = 500f;
 
     private GameObject currentPlacingTower;
+    private TowerBehavior selectedTower;
     private bool waitForMouseRelease;
     private bool currentPlacementIsValid;
+    private static readonly Rect PriorityPanelRect = new Rect(20f, 20f, 300f, 190f);
 
     private void Awake()
     {
@@ -52,12 +54,7 @@ public class TowerPlacement : MonoBehaviour
 
     private void Update()
     {
-        if (currentPlacingTower == null)
-        {
-            return;
-        }
-
-        if (editorCamera == null)
+        if (editorCamera == null || !editorCamera.enabled)
         {
             return;
         }
@@ -65,6 +62,15 @@ public class TowerPlacement : MonoBehaviour
         Mouse mouse = Mouse.current;
         if (mouse == null)
         {
+            return;
+        }
+
+        if (currentPlacingTower == null)
+        {
+            if (mouse.leftButton.wasPressedThisFrame && !IsPointerOverUI() && !IsPointerOverPriorityPanel(mouse.position.ReadValue()))
+            {
+                SelectTowerUnderPointer(mouse.position.ReadValue());
+            }
             return;
         }
 
@@ -109,6 +115,12 @@ public class TowerPlacement : MonoBehaviour
             // Ignore clicks over UI; the UI click that selected the tower must not place it.
             if (currentPlacementIsValid && mouse.leftButton.wasPressedThisFrame && !IsPointerOverUI())
             {
+                TowerBehavior placedTower = currentPlacingTower.GetComponent<TowerBehavior>();
+                if (placedTower != null)
+                {
+                    placedTower.SetPlacementPreview(false);
+                    SelectTower(placedTower);
+                }
                 currentPlacingTower = null;
             }
 
@@ -129,7 +141,14 @@ public class TowerPlacement : MonoBehaviour
             Destroy(currentPlacingTower);
         }
 
+        SelectTower(null);
+
         currentPlacingTower = Instantiate(tower, Vector3.zero, Quaternion.identity);
+        TowerBehavior towerBehavior = currentPlacingTower.GetComponent<TowerBehavior>();
+        if (towerBehavior != null)
+        {
+            towerBehavior.SetPlacementPreview(true);
+        }
         currentPlacementIsValid = false;
         // Wait for the UI button click to finish before accepting a placement click.
         waitForMouseRelease = Mouse.current != null && Mouse.current.leftButton.isPressed;
@@ -138,5 +157,72 @@ public class TowerPlacement : MonoBehaviour
     private static bool IsPointerOverUI()
     {
         return EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+    }
+
+    private void SelectTowerUnderPointer(Vector2 pointerPosition)
+    {
+        Ray ray = editorCamera.ScreenPointToRay(pointerPosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, raycastDistance, ~ignoredPlacementLayers, QueryTriggerInteraction.Ignore);
+        System.Array.Sort(hits, (first, second) => first.distance.CompareTo(second.distance));
+
+        foreach (RaycastHit hit in hits)
+        {
+            TowerBehavior tower = hit.collider.GetComponentInParent<TowerBehavior>();
+            if (tower != null)
+            {
+                SelectTower(tower);
+                return;
+            }
+        }
+
+        SelectTower(null);
+    }
+
+    private void SelectTower(TowerBehavior tower)
+    {
+        if (selectedTower == tower)
+        {
+            return;
+        }
+
+        if (selectedTower != null)
+        {
+            selectedTower.ShowRangeIndicator(false);
+        }
+
+        selectedTower = tower;
+        if (selectedTower != null)
+        {
+            selectedTower.ShowRangeIndicator(true);
+        }
+    }
+
+    private void OnGUI()
+    {
+        if (selectedTower == null || editorCamera == null || !editorCamera.enabled)
+        {
+            return;
+        }
+
+        GUI.Box(PriorityPanelRect, "TURRET TARGET PRIORITY");
+        GUI.Label(new Rect(35f, 55f, 270f, 24f), $"Range: {selectedTower.Range:0.0} m");
+        DrawPriorityButton(new Rect(35f, 84f, 270f, 28f), "Closest enemy", TowerTargetPriority.ClosestEnemy);
+        DrawPriorityButton(new Rect(35f, 117f, 270f, 28f), "Most current health", TowerTargetPriority.MostHealth);
+        DrawPriorityButton(new Rect(35f, 150f, 270f, 28f), "Fastest enemy", TowerTargetPriority.FastestEnemy);
+    }
+
+    private void DrawPriorityButton(Rect rect, string label, TowerTargetPriority priority)
+    {
+        string buttonLabel = selectedTower.TargetPriority == priority ? $"✓  {label}" : label;
+        if (GUI.Button(rect, buttonLabel))
+        {
+            selectedTower.SetTargetPriority(priority);
+        }
+    }
+
+    private static bool IsPointerOverPriorityPanel(Vector2 pointerPosition)
+    {
+        Vector2 guiPosition = new Vector2(pointerPosition.x, Screen.height - pointerPosition.y);
+        return PriorityPanelRect.Contains(guiPosition);
     }
 }

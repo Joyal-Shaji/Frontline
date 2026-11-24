@@ -2773,8 +2773,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58c8fc063dfcc466e8b6f74e610d40db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamageGun
-  Damage: 2
-  BulletRange: 10
+  Damage: 10
+  BulletRange: 20
   playerCamera: {fileID: 330585545}
 --- !u!114 &776906498
 MonoBehaviour:
@@ -3585,6 +3585,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
   NodeParent: {fileID: 1730689943}
   loopShouldEnd: 0
+  waveConfigurationFile: {fileID: 0}
 --- !u!4 &1190564123
 Transform:
   m_ObjectHideFlags: 0

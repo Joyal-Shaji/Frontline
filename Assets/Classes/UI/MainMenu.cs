@@ -226,6 +226,8 @@ public sealed class MainMenu : MonoBehaviour
         GUI.Label(new Rect(left + 170f, 398f, width - 170f, 30f), "Switch camera mode", footerStyle);
         GUI.Label(new Rect(left, 438f, width, 30f), "F / CLICK", bodyStyle);
         GUI.Label(new Rect(left + 170f, 438f, width - 170f, 30f), "Start next wave (look at the button)", footerStyle);
+        GUI.Label(new Rect(left, 478f, width, 30f), "CLICK TURRET", bodyStyle);
+        GUI.Label(new Rect(left + 170f, 478f, width - 170f, 30f), "Choose its target priority in editor view", footerStyle);
 
         if (GUI.Button(new Rect(left, panelHeight - 100f, width, 48f), "BACK", secondaryButtonStyle))
         {
