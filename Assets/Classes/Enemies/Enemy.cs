@@ -9,6 +9,15 @@ public class Enemy : MonoBehaviour
     public float health;
     public float speed;
     public int ID;
+    private float defaultMaxHealth;
+    private float defaultSpeed;
+    private bool defaultsCached;
+
+    private void Awake()
+    {
+        CacheDefaults();
+    }
+
     public float Health
     {
         get { return health; }
@@ -17,15 +26,43 @@ public class Enemy : MonoBehaviour
             health = value;
             if (health <= 0)
             {
-                EntitySummoner.RemoveEnemy(this);
+                if (EntitySummoner.EnemiesInGame != null && EntitySummoner.EnemiesInGame.Contains(this))
+                {
+                    EntitySummoner.RemoveEnemy(this);
+                }
             }
         }
     }
-    public void Init()
+
+    public void Init(float healthOverride = 0f, float speedOverride = 0f)
     {
-        // Initialize enemy properties here
+        CacheDefaults();
+        maxHealth = defaultMaxHealth;
+        speed = defaultSpeed;
+
+        if (healthOverride > 0f)
+        {
+            maxHealth = healthOverride;
+        }
+        if (speedOverride > 0f)
+        {
+            speed = speedOverride;
+        }
+
         health = maxHealth;
         transform.position = GameLoopManager.NodePositions[0];
         NodeIndex = 0;
+    }
+
+    private void CacheDefaults()
+    {
+        if (defaultsCached)
+        {
+            return;
+        }
+
+        defaultMaxHealth = maxHealth;
+        defaultSpeed = speed;
+        defaultsCached = true;
     }
 }

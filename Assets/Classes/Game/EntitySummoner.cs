@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class EntitySummoner : MonoBehaviour
@@ -37,32 +36,42 @@ public class EntitySummoner : MonoBehaviour
     }
 
 
-    public static Enemy SummonEnemy(int EnemyID)
+    public static Enemy SummonEnemy(int EnemyID, float healthOverride = 0f, float speedOverride = 0f)
     {
         Enemy SummonedEnemy = null;
 
-        if (EnemyPrefabs.ContainsKey(EnemyID))
+        if (EnemyPrefabs != null && EnemyPrefabs.TryGetValue(EnemyID, out GameObject enemyPrefab))
         {
             Queue<Enemy> ReferencedQueue = EnemyObjectPools[EnemyID];
 
             if (ReferencedQueue.Count > 0)
             {
                 SummonedEnemy = ReferencedQueue.Dequeue();
-                SummonedEnemy.Init();
-
+                SummonedEnemy.Init(healthOverride, speedOverride);
                 SummonedEnemy.gameObject.SetActive(true);
             }
             else
             {
-                GameObject NewEnemy = Instantiate(EnemyPrefabs[EnemyID], GameLoopManager.NodePositions[0], Quaternion.identity);
+                GameObject NewEnemy = Instantiate(enemyPrefab, GameLoopManager.NodePositions[0], Quaternion.identity);
                 SummonedEnemy = NewEnemy.GetComponent<Enemy>();
-                SummonedEnemy.Init();
+                if (SummonedEnemy != null)
+                {
+                    SummonedEnemy.Init(healthOverride, speedOverride);
+                }
             }
         }
         else
         {
             Debug.Log($"ENTITY SUMMONER: NO ENEMY PREFAB FOUND FOR ID {EnemyID}");
+            return null;
         }
+
+        if (SummonedEnemy == null)
+        {
+            Debug.LogError($"Enemy prefab for ID {EnemyID} is missing the Enemy component.");
+            return null;
+        }
+
         EnemiesInGameTransforms.Add(SummonedEnemy.transform);
         EnemiesInGame.Add(SummonedEnemy);
         SummonedEnemy.ID = EnemyID;
@@ -71,11 +80,20 @@ public class EntitySummoner : MonoBehaviour
 
     public static void RemoveEnemy(Enemy EnemyToRemove)
     {
-        EnemyObjectPools[EnemyToRemove.ID].Enqueue(EnemyToRemove);
+        if (EnemyToRemove == null || EnemiesInGame == null || !EnemiesInGame.Contains(EnemyToRemove))
+        {
+            return;
+        }
+
+        if (EnemyObjectPools == null || !EnemyObjectPools.TryGetValue(EnemyToRemove.ID, out Queue<Enemy> pool))
+        {
+            Debug.LogError($"No object pool exists for enemy ID {EnemyToRemove.ID}.");
+            return;
+        }
+
+        pool.Enqueue(EnemyToRemove);
         EnemyToRemove.gameObject.SetActive(false);
         EnemiesInGameTransforms.Remove(EnemyToRemove.transform);
         EnemiesInGame.Remove(EnemyToRemove);
-
-
     }
 }

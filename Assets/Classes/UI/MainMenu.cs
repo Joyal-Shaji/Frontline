@@ -129,7 +129,7 @@ public sealed class MainMenu : MonoBehaviour
 
         float scale = Mathf.Min(Screen.width / 1000f, Screen.height / 650f, 1.25f);
         float panelWidth = 440f;
-        float panelHeight = currentPage == MenuPage.Main ? 490f : 540f;
+        float panelHeight = currentPage == MenuPage.Main ? 490f : currentPage == MenuPage.Controls ? 590f : 540f;
         float x = (Screen.width - panelWidth * scale) * 0.5f;
         float y = (Screen.height - panelHeight * scale) * 0.5f;
         Matrix4x4 previousMatrix = GUI.matrix;
@@ -224,6 +224,8 @@ public sealed class MainMenu : MonoBehaviour
         GUI.Label(new Rect(left + 170f, 358f, width - 170f, 30f), "Sprint", footerStyle);
         GUI.Label(new Rect(left, 398f, width, 30f), "E", bodyStyle);
         GUI.Label(new Rect(left + 170f, 398f, width - 170f, 30f), "Switch camera mode", footerStyle);
+        GUI.Label(new Rect(left, 438f, width, 30f), "F / CLICK", bodyStyle);
+        GUI.Label(new Rect(left + 170f, 438f, width - 170f, 30f), "Start next wave (look at the button)", footerStyle);
 
         if (GUI.Button(new Rect(left, panelHeight - 100f, width, 48f), "BACK", secondaryButtonStyle))
         {

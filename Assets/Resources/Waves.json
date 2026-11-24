@@ -1,0 +1,43 @@
+{
+    "waves": [
+        {
+            "spawnInterval": 1.0,
+            "enemies": [
+                {
+                    "enemyID": 1,
+                    "count": 5,
+                    "health": 100,
+                    "speed": 1.5
+                }
+            ]
+        },
+        {
+            "spawnInterval": 0.75,
+            "enemies": [
+                {
+                    "enemyID": 1,
+                    "count": 7,
+                    "health": 140,
+                    "speed": 1.8
+                },
+                {
+                    "enemyID": 1,
+                    "count": 3,
+                    "health": 220,
+                    "speed": 1.2
+                }
+            ]
+        },
+        {
+            "spawnInterval": 0.5,
+            "enemies": [
+                {
+                    "enemyID": 1,
+                    "count": 10,
+                    "health": 180,
+                    "speed": 2.2
+                }
+            ]
+        }
+    ]
+}
